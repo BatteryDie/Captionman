@@ -1,0 +1,88 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - "*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: 10.0.x
+  THUNDERSTORE_NAMESPACE: BatteryDie
+  THUNDERSTORE_PACKAGE_NAME: Captionman
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Validate tag against manifest version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $normalizedTag = $tag.TrimStart('v')
+          $manifest = Get-Content 'Captionman/manifest.json' -Raw | ConvertFrom-Json
+
+          if ($manifest.version_number -ne $normalizedTag) {
+            throw "Tag '$tag' does not match manifest version '$($manifest.version_number)'."
+          }
+
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$normalizedTag" >> $env:GITHUB_OUTPUT
+
+      - name: Restore solution
+        run: dotnet restore .\Captionman.sln
+
+      - name: Build solution
+        run: dotnet build .\Captionman.sln -c Release --no-restore
+
+      - name: Stage release archive
+        id: package
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $packageRoot = Join-Path $env:RUNNER_TEMP 'Captionman-package'
+          $pluginRoot = Join-Path $packageRoot 'plugins\BatteryDie-Captionman'
+          $archivePath = Join-Path (Resolve-Path '.').Path ("artifacts/{0}-{1}-{2}.zip" -f $env:THUNDERSTORE_NAMESPACE, $env:THUNDERSTORE_PACKAGE_NAME, $env:RELEASE_VERSION)
+
+          Remove-Item $packageRoot -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $pluginRoot -Force | Out-Null
+
+          Copy-Item 'Captionman/manifest.json' $packageRoot -Force
+          Copy-Item 'Captionman/README.md' $packageRoot -Force
+          Copy-Item 'Captionman/icon.png' $packageRoot -Force
+          Copy-Item 'Captionman/bin/Release/netstandard2.1/Captionman.dll' $pluginRoot -Force
+          Copy-Item 'CaptionCatalogs/*.csv' $pluginRoot -Force
+          Copy-Item 'LICENSE' $packageRoot -Force
+
+          $archiveDir = Split-Path $archivePath -Parent
+          New-Item -ItemType Directory -Path $archiveDir -Force | Out-Null
+          if (Test-Path $archivePath) {
+            Remove-Item $archivePath -Force
+          }
+
+          Compress-Archive -Path (Join-Path $packageRoot '*') -DestinationPath $archivePath
+          "archive=$archivePath" >> $env:GITHUB_OUTPUT
+
+      - name: Publish GitHub release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          files: ${{ steps.package.outputs.archive }}
