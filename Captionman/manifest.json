@@ -1,8 +1,8 @@
 {
     "name": "Captionman",
-    "version_number": "1.0.0",
+    "version_number": "1.0.1",
     "website_url": "https://github.com/BatteryDie/Captionman",
-    "description": "Accessibility closed captions for R.E.P.O. game audio event and the caption API for other mods.",
+    "description": "An accessibility closed captions mod for R.E.P.O. game",
     "dependencies": [
         "BepInEx-BepInExPack-5.4.2304"
     ]

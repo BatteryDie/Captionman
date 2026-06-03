@@ -231,33 +231,6 @@ internal sealed class SoundCaptionCatalog
             }
         }
 
-        var legacyNames = new[]
-        {
-            "game_audio_captions.csv",
-            "sound_caption_review.csv",
-            "sound_captions.csv"
-        };
-
-        foreach (var dir in dirs)
-        {
-            foreach (var legacyName in legacyNames)
-            {
-                var inCaptionsFolder = Path.Combine(dir, "Captions", legacyName);
-                if (File.Exists(inCaptionsFolder))
-                {
-                    Captionman.LogDebug($"Using legacy caption catalog fallback: {inCaptionsFolder}");
-                    return new ResolvedCaptionCatalog(inCaptionsFolder, "legacy-captions");
-                }
-
-                var inRoot = Path.Combine(dir, legacyName);
-                if (File.Exists(inRoot))
-                {
-                    Captionman.LogDebug($"Using legacy caption catalog fallback: {inRoot}");
-                    return new ResolvedCaptionCatalog(inRoot, "legacy-root");
-                }
-            }
-        }
-
         return null;
     }
 

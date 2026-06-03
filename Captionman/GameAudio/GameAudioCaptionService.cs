@@ -13,7 +13,7 @@ internal class GameAudioCaptionService
     private readonly Captionman _plugin;
 
     // Proximity radius in Unity world units (~meters). Sounds beyond this are suppressed.
-    private const float ProximityRadius = 30f;
+    private const float ProximityRadius = 15f;
 
     // Cooldown tracking: key = caption text, value = Time.time when last shown
     private readonly Dictionary<string, float> _cooldowns = new Dictionary<string, float>();
