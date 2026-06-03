@@ -1,6 +1,6 @@
 # Captionman
 
-Captionman adds real-time closed captions for game sounds in R.E.P.O. making the game more accessible for players who are deaf and hard of hearing.
+Captionman is an accessibility closed captions mod for R.E.P.O. game, making the game more accessible to players who are deaf or hard of hearing.
 
 ## What It Does
 
@@ -12,13 +12,13 @@ Never miss an important sound again! Captionman shows captions for:
 
 ## Customization
 
-To ajust the caption settings, you can use [MenuLib](https://github.com/IsThatTheRealNick/MenuLib)+[REPOConfig](https://github.com/IsThatTheRealNick/REPOConfig) or edit the config file directly at `BepInEx/config/BatteryDie.Captionman.cfg` to customize:
+To adjust the caption settings, you can use [MenuLib](https://github.com/IsThatTheRealNick/MenuLib)+[REPOConfig](https://github.com/IsThatTheRealNick/REPOConfig) or edit the config file directly at `BepInEx/config/BatteryDie.Captionman.cfg` to customize:
 
 | Setting | Default | What It Does |
 |---------|---------|--------------|
 | **EnableCaptionsUI** | On | Master toggle for caption rendering across menus, loading, lobby, and gameplay |
 | **GameAudioCaptions** | On | Enable closed captions for game audio |
-| **GameAudioRepeatCooldownSeconds** | 2.0 | Prevent the same game-audio caption from appearing too often |
+| **GameAudioRepeatCooldownSeconds** | 4.0 | Prevent the same game-audio caption from appearing too often |
 | **GameAudioCaptionFile** | captionsEN.csv | Set caption CSV filename to load (falls back to captionsEN.csv if missing) |
 | **BackgroundOpacity** | 0.7 | Make caption background darker or lighter (0.0 = invisible, 1.0 = solid) |
 | **TextSize** | 16.0 | Make text bigger or smaller (10-25) |
@@ -32,11 +32,11 @@ Caption files are packaged flat beside the DLL and loaded by the `GameAudioCapti
 
 ## Feedback & Support
 
-Found a bug or have a suggestion? Reach out on [GitHub](https://github.com/BatteryDie/Captionman/issues) or join the conversation in the [R.E.P.O. modding server](https://discord.gg/vPJtKhYAFe).
+Found a bug or have a suggestion? Reach out on [GitHub](https://github.com/BatteryDie/Captionman/issues) or join the conversation in the [R.E.P.O. modding server](https://discord.gg/vPJtKhYAFe) ([Thread Link](https://discord.com/channels/1344557689979670578/1511107709913530459)).
 
-## Help Wanted
+## Help Wanted/Contribute
 
-I'm looking for volunteers to help improve caption transcription quality and coverage. If you're interested, please open an issue in the GitHub repository or get in touch.
+I'm looking for volunteers to help improve caption transcription quality and coverage. If you're interested, please open an issue or pull request and add the label "closed-captions-transcript" in the GitHub repository or get in touch.
 
 ## License
 

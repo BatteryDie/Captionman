@@ -4,7 +4,7 @@
 
 # Captionman
 
-Captionman is a real-time accessibility closed captions mod for R.E.P.O. focused on game audio events.
+Captionman is an accessibility closed captions mod for R.E.P.O. game, making the game more accessible to players who are deaf or hard of hearing.
 
 ## Mod Dependencies
 Required:
@@ -80,9 +80,9 @@ Approved palette:
 
 Note: Unknown or invalid color tags are ignored safely and text still displays.
 
-## Help Wanted
+## Help Wanted/Contribute
 
-I'm looking for volunteers to help improve caption transcription quality and coverage. If you're interested, please open an issue or get in touch.
+I'm looking for volunteers to help improve caption transcription quality and coverage. If you're interested, please open an issue or pull request and add the label "closed-captions-transcript" in the GitHub repository or get in touch.
 
 ## License
 
