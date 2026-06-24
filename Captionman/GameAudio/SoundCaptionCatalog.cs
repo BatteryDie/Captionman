@@ -15,8 +15,8 @@ internal sealed class SoundCaptionCatalog
 {
     private static readonly object CatalogLock = new object();
     private const string DefaultCaptionFileName = "captionsEN.csv";
-    private readonly Dictionary<string, Entry> _entriesByName;
-    private static SoundCaptionCatalog _current = new SoundCaptionCatalog(new Dictionary<string, Entry>(StringComparer.OrdinalIgnoreCase));
+    private readonly Dictionary<string, List<Entry>> _entriesByName;
+    private static SoundCaptionCatalog _current = new SoundCaptionCatalog(new Dictionary<string, List<Entry>>(StringComparer.OrdinalIgnoreCase));
 
     internal static SoundCaptionCatalog Current
     {
@@ -31,17 +31,19 @@ internal sealed class SoundCaptionCatalog
 
     internal readonly struct Entry
     {
-        internal Entry(string caption, bool isGlobal)
+        internal Entry(string caption, bool isGlobal, string entityTag = "")
         {
             Caption = caption;
             IsGlobal = isGlobal;
+            EntityTag = entityTag;
         }
 
         internal string Caption { get; }
         internal bool IsGlobal { get; }
+        internal string EntityTag { get; }
     }
 
-    private SoundCaptionCatalog(Dictionary<string, Entry> entriesByName)
+    private SoundCaptionCatalog(Dictionary<string, List<Entry>> entriesByName)
     {
         _entriesByName = entriesByName;
     }
@@ -94,7 +96,7 @@ internal sealed class SoundCaptionCatalog
         if (resolvedCatalog == null)
         {
             Captionman.LogWarning("Caption CSV not found. Configure Captions.GameAudioCaptionFile with a CSV filename like captionsEN.csv. captionsEN.csv is always used as fallback when available.");
-            return new SoundCaptionCatalog(new Dictionary<string, Entry>(StringComparer.OrdinalIgnoreCase));
+            return new SoundCaptionCatalog(new Dictionary<string, List<Entry>>(StringComparer.OrdinalIgnoreCase));
         }
 
         try
@@ -104,23 +106,25 @@ internal sealed class SoundCaptionCatalog
             if (rows.Count == 0)
             {
                 Captionman.LogWarning($"Caption CSV is empty: {csvPath}");
-                return new SoundCaptionCatalog(new Dictionary<string, Entry>(StringComparer.OrdinalIgnoreCase));
+                return new SoundCaptionCatalog(new Dictionary<string, List<Entry>>(StringComparer.OrdinalIgnoreCase));
             }
 
             var header = ParseCsvLine(rows[0]);
             var nameIndex = FindColumnIndex(header, "name");
             var captionIndex = FindColumnIndex(header, "caption");
             var isGlobalIndex = FindColumnIndex(header, "isglobal");
+            var entityIndex = FindColumnIndex(header, "entity");
 
             if (nameIndex < 0 || captionIndex < 0)
             {
                 Captionman.LogError("Caption CSV is missing required columns: name, caption");
-                return new SoundCaptionCatalog(new Dictionary<string, Entry>(StringComparer.OrdinalIgnoreCase));
+                return new SoundCaptionCatalog(new Dictionary<string, List<Entry>>(StringComparer.OrdinalIgnoreCase));
             }
 
-            var map = new Dictionary<string, Entry>(StringComparer.OrdinalIgnoreCase);
+            var map = new Dictionary<string, List<Entry>>(StringComparer.OrdinalIgnoreCase);
             var loaded = 0;
             var loadedGlobal = 0;
+            var loadedConditional = 0;
 
             for (var i = 1; i < rows.Count; i++)
             {
@@ -141,31 +145,37 @@ internal sealed class SoundCaptionCatalog
                 var isGlobal = isGlobalIndex >= 0 && isGlobalIndex < fields.Count
                     ? ParseBool(fields[isGlobalIndex])
                     : false;
+                var entity = entityIndex >= 0 && entityIndex < fields.Count
+                    ? fields[entityIndex].Trim()
+                    : string.Empty;
 
                 if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(caption))
                 {
                     continue;
                 }
 
-                map[name] = new Entry(caption, isGlobal);
-                loaded++;
-                if (isGlobal)
+                if (!map.TryGetValue(name, out var entryList))
                 {
-                    loadedGlobal++;
+                    entryList = new List<Entry>();
+                    map[name] = entryList;
                 }
+                entryList.Add(new Entry(caption, isGlobal, entity));
+                loaded++;
+                if (isGlobal) loadedGlobal++;
+                if (!string.IsNullOrEmpty(entity)) loadedConditional++;
             }
 
-            Captionman.LogInfo($"Loaded sound caption catalog: {loaded} entries ({loadedGlobal} global) from {Path.GetFileName(csvPath)} ({resolvedCatalog.Source})");
+            Captionman.LogInfo($"Loaded sound caption catalog: {loaded} entries ({loadedGlobal} global, {loadedConditional} conditional) from {Path.GetFileName(csvPath)} ({resolvedCatalog.Source})");
             return new SoundCaptionCatalog(map);
         }
         catch (Exception ex)
         {
             Captionman.LogError($"Failed to load sound caption CSV: {ex.Message}");
-            return new SoundCaptionCatalog(new Dictionary<string, Entry>(StringComparer.OrdinalIgnoreCase));
+            return new SoundCaptionCatalog(new Dictionary<string, List<Entry>>(StringComparer.OrdinalIgnoreCase));
         }
     }
 
-    internal bool TryResolve(string clipName, Sound sound, out string caption, out bool isGlobal)
+    internal bool TryResolve(string clipName, Sound sound, out string caption, out bool isGlobal, UnityEngine.Transform? entityTransform = null)
     {
         caption = string.Empty;
         isGlobal = false;
@@ -175,18 +185,41 @@ internal sealed class SoundCaptionCatalog
             return false;
         }
 
-        if (!_entriesByName.TryGetValue(clipName, out var entry))
+        if (!_entriesByName.TryGetValue(clipName, out var entries))
         {
             Captionman.LogDebug($"No caption for \"{clipName}\"");
             return false;
         }
 
-        caption = entry.Caption;
+        var entityNames = GameAudioConditional.GetEntityNames(sound, entityTransform);
+        Entry? fallback = null;
+        foreach (var entry in entries)
+        {
+            if (string.IsNullOrEmpty(entry.EntityTag))
+            {
+                if (fallback == null) fallback = entry;
+            }
+            else if (entityNames.Contains(entry.EntityTag))
+            {
+                caption = entry.Caption;
+                isGlobal = entry.IsGlobal
+                           || clipName.IndexOf(" global", StringComparison.OrdinalIgnoreCase) >= 0
+                           || sound.Type == AudioManager.AudioType.Global;
+                Captionman.LogDebug($"Entity match: '{clipName}' + '{entry.EntityTag}' -> '{caption}'");
+                return true;
+            }
+        }
 
-        isGlobal = entry.IsGlobal
-               || clipName.IndexOf(" global", StringComparison.OrdinalIgnoreCase) >= 0
-               || sound.Type == AudioManager.AudioType.Global;
+        if (fallback == null)
+        {
+            Captionman.LogDebug($"No caption for \"{clipName}\"");
+            return false;
+        }
 
+        caption = fallback.Value.Caption;
+        isGlobal = fallback.Value.IsGlobal
+                   || clipName.IndexOf(" global", StringComparison.OrdinalIgnoreCase) >= 0
+                   || sound.Type == AudioManager.AudioType.Global;
         return true;
     }
 

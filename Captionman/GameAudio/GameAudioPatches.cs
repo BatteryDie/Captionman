@@ -10,7 +10,7 @@ namespace Captionman;
 [HarmonyPatch]
 static class GameAudioPatches
 {
-    private static void HandlePlayPostfix(Sound __instance, Vector3 position, AudioSource __result)
+    private static void HandlePlayPostfix(Sound __instance, Vector3 position, AudioSource __result, Transform? entityTransform = null)
     {
         if (__result == null || __instance.Sounds == null || __instance.Sounds.Length == 0)
         {
@@ -34,7 +34,7 @@ static class GameAudioPatches
             return;
         }
 
-        if (!SoundCaptionCatalog.Current.TryResolve(clipName, __instance, out var caption, out var isGlobal))
+        if (!SoundCaptionCatalog.Current.TryResolve(clipName, __instance, out var caption, out var isGlobal, entityTransform))
         {
             return;
         }
@@ -56,15 +56,15 @@ static class GameAudioPatches
     [HarmonyPatch(typeof(Sound), nameof(Sound.Play), new[] { typeof(Transform), typeof(float), typeof(float), typeof(float), typeof(float) })]
     private static void Sound_Play_Transform_Postfix(Sound __instance, Transform followTarget, AudioSource __result)
     {
-        HandlePlayPostfix(__instance, followTarget != null ? followTarget.position : Vector3.zero, __result);
+        HandlePlayPostfix(__instance, followTarget != null ? followTarget.position : Vector3.zero, __result, followTarget);
     }
 
     // Play(Transform followTarget, Vector3 contactPoint, float, float, float, float)
     [HarmonyPostfix]
     [HarmonyPatch(typeof(Sound), nameof(Sound.Play), new[] { typeof(Transform), typeof(Vector3), typeof(float), typeof(float), typeof(float), typeof(float) })]
-    private static void Sound_Play_TransformContact_Postfix(Sound __instance, Vector3 contactPoint, AudioSource __result)
+    private static void Sound_Play_TransformContact_Postfix(Sound __instance, Transform followTarget, Vector3 contactPoint, AudioSource __result)
     {
-        HandlePlayPostfix(__instance, contactPoint, __result);
+        HandlePlayPostfix(__instance, contactPoint, __result, followTarget);
     }
 
     // PlayLoop(bool playing, float fadeInSpeed, float fadeOutSpeed, float pitchMultiplier, float volumeMultiplier)

@@ -16,25 +16,20 @@ Optional:
 
 ## Technical Details
 
-<details><summary>Game Audio Captions</summary>
-
+### Game Audio Captions
 - Hooks into R.E.P.O.'s runtime `Sound.Play(...)` and `Sound.PlayLoop(...)` paths to detect game audio events (enemy, item, player, and event sounds)
 - Uses `Captions.GameAudioCaptionFile` to load a direct caption CSV filename (for example `captionsEN.csv`)
 - If configured file is missing, falls back to `captionsEN.csv`
 - Automatically treats sounds as global when clip names contain `global` or when the runtime sound type is global
 - Applies proximity filtering for non-global sounds to avoid captioning distant events
 - Uses cooldowns to reduce repeated caption spam from loops or rapid-fire sound events
+- Supports conditional captioning via an optional `entity` column in the CSV. When filled with a C# component class name (e.g. `ItemRubberDuck`), the caption only shows when the sound originates from that entity type; falls back to the generic row when no entity-specific match is found
 - Displays game audio captions in the caption UI
 
-</details>
-
-<details><summary>Caption API</summary>
-
+### Caption API
 - Provides `CaptionmanApi.SendCaption(text)` for generic caption lines
 - Provides `CaptionmanApi.SendCaption(speaker, text)` for speaker-formatted lines
 - API callers can push captions into the same persistent caption UI used by game-audio captions
-
-</details>
 
 ## Configuration
 The config file is located at `BepInEx/config/BatteryDie.Captionman.cfg`
