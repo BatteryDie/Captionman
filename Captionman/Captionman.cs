@@ -1,4 +1,5 @@
-﻿using BepInEx;
+﻿using System.Collections.Generic;
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -30,6 +31,9 @@ public class Captionman : BaseUnityPlugin
 
     // Config - Developer
     internal ConfigEntry<bool> EnableDebug { get; private set; } = null!;
+    internal ConfigEntry<bool> StopConsoleSpam { get; private set; } = null!;
+    private readonly Dictionary<string, float> _debugCooldowns = new Dictionary<string, float>();
+    private const float DebugSpamCooldownSeconds = 5f;
     private GameAudioCaptionService? _gameAudioService;
     internal GameAudioCaptionService? GameAudioService => _gameAudioService;
 
@@ -158,6 +162,13 @@ public class Captionman : BaseUnityPlugin
             "Enable debug logging for troubleshooting"
         );
 
+        StopConsoleSpam = Config.Bind(
+            "Developer",
+            "StopConsoleSpam",
+            false,
+            "When enabled, repeated identical debug messages are suppressed for 5 seconds to reduce console noise"
+        );
+
         GameAudioCaptionFile.SettingChanged += (_, _) => SoundCaptionCatalog.ReloadFromConfig();
         SoundCaptionCatalog.ReloadFromConfig();
 
@@ -203,10 +214,18 @@ public class Captionman : BaseUnityPlugin
 
     internal static void LogDebug(string message)
     {
-        if (Instance.EnableDebug.Value)
+        if (!Instance.EnableDebug.Value)
+            return;
+
+        if (Instance.StopConsoleSpam.Value)
         {
-            Logger.LogInfo($"[Debug] {message}");
+            var now = UnityEngine.Time.realtimeSinceStartup;
+            if (Instance._debugCooldowns.TryGetValue(message, out var last) && now - last < DebugSpamCooldownSeconds)
+                return;
+            Instance._debugCooldowns[message] = now;
         }
+
+        Logger.LogInfo($"[Debug] {message}");
     }
 
     internal static void LogOutput(string playerName, string text)
