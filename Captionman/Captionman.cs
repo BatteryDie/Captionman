@@ -81,7 +81,7 @@ public class Captionman : BaseUnityPlugin
         BackgroundOpacity = Config.Bind(
             "Appearance",
             "BackgroundOpacity",
-            0.7f,
+            0.4f,
             new ConfigDescription(
                 "Opacity of caption background from 0.0 (transparent) to 1.0 (opaque)",
                 new AcceptableValueRange<float>(0f, 1f)
