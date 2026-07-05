@@ -66,6 +66,7 @@ jobs:
 
           Copy-Item 'Captionman/manifest.json' $packageRoot -Force
           Copy-Item 'Captionman/README.md' $packageRoot -Force
+          Copy-Item 'Captionman/CHANGELOG.md' $packageRoot -Force
           Copy-Item 'Captionman/icon.png' $packageRoot -Force
           Copy-Item 'Captionman/bin/Release/netstandard2.1/Captionman.dll' $pluginRoot -Force
           Copy-Item 'CaptionCatalogs/*.csv' $pluginRoot -Force
