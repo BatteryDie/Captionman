@@ -40,13 +40,14 @@ The config file is located at `BepInEx/config/BatteryDie.Captionman.cfg`
 | **Captions** | GameAudioCaptions | `true` | Enable closed captions for game audio |
 | **Captions** | GameAudioRepeatCooldownSeconds | `4.0` | Minimum cooldown before the same game-audio caption text can appear again |
 | **Captions** | GameAudioCaptionFile | `captionsEN.csv` | Caption CSV filename to load; falls back to `captionsEN.csv` if missing |
-| **Appearance** | BackgroundOpacity | `0.7` | Opacity of the background for captions (0.0 to 1.0) |
+| **Appearance** | BackgroundOpacity | `0.4` | Opacity of the background for captions (0.0 to 1.0) |
 | **Appearance** | TextSize | `16.0` | Font size of captions (10.0 to 25.0) |
 | **Appearance** | DisableTextColour | `false` | Disable custom text colour tags |
 | **Appearance** | TextLeftAlign | `false` | Align caption text to the left instead of centered |
 | **Appearance** | HorizontalPosition | `0.0` | Horizontal position offset of the caption panel (-270.0 to 260.0) |
 | **Appearance** | VerticalPosition | `50.0` | Vertical position offset of the caption panel (0.0 to 350.0) |
-| **Developer** | EnableDebug | `false` | Enable debug logging for troubleshooting | 
+| **Developer** | EnableDebug | `false` | Enable debug logging for troubleshooting |
+| **Developer** | StopConsoleSpam | `false` | When enabled, repeated identical debug messages are suppressed for 5 seconds to reduce console noise |
 
 ## Text Colour Markup
 

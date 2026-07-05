@@ -20,13 +20,14 @@ To adjust the caption settings, you can use [MenuLib](https://github.com/IsThatT
 | **GameAudioCaptions** | On | Enable closed captions for game audio |
 | **GameAudioRepeatCooldownSeconds** | 4.0 | Prevent the same game-audio caption from appearing too often |
 | **GameAudioCaptionFile** | captionsEN.csv | Set caption CSV filename to load (falls back to captionsEN.csv if missing) |
-| **BackgroundOpacity** | 0.7 | Make caption background darker or lighter (0.0 = invisible, 1.0 = solid) |
+| **BackgroundOpacity** | 0.4 | Make caption background darker or lighter (0.0 = invisible, 1.0 = solid) |
 | **TextSize** | 16.0 | Make text bigger or smaller (10-25) |
 | **DisableTextColour** | Off | Disable custom text colour tags |
 | **TextLeftAlign** | Off | Align caption text to the left instead of centered |
 | **HorizontalPosition** | 0.0 | Horizontal position offset of the caption panel (-270.0 to 260.0) |
 | **VerticalPosition** | 50.0 | Vertical position offset of the caption panel (0.0 to 350.0) |
 | **EnableDebug** | Off | Enable debug logging for troubleshooting |
+| **StopConsoleSpam** | Off | When enabled, repeated identical debug messages are suppressed for 5 seconds to reduce console noise |
 
 Caption files are packaged flat beside the DLL and loaded by the `GameAudioCaptionFile` filename config.
 
