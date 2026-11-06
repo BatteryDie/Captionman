@@ -51,6 +51,8 @@ public class CaptionUI : MonoBehaviour
     private Image? _backgroundPanel;
     private TextMeshProUGUI? _captionText;
     private CanvasGroup? _canvasGroup;
+    private GameObject? _fallbackCanvasObj;
+    private bool _onHudCanvas;
 
     private readonly Color _backgroundBaseColor = new Color(0f, 0f, 0f, 1f);
     private readonly Color _textColor = new Color(1f, 1f, 1f, 1f);
@@ -187,6 +189,8 @@ public class CaptionUI : MonoBehaviour
             return;
         }
 
+        TryMoveToHudCanvas();
+
         ApplyBackgroundOpacity();
         ApplyFontSize();
         ApplyTextAlignment();
@@ -227,25 +231,66 @@ public class CaptionUI : MonoBehaviour
         return _uiContainer != null;
     }
 
+    private static RectTransform? GetHudCanvasRect()
+    {
+        return HUDCanvas.instance != null && HUDCanvas.instance.rect != null
+            ? HUDCanvas.instance.rect
+            : null;
+    }
+
     private RectTransform? ResolveOrCreateParentCanvasRect()
     {
-        if (HUDCanvas.instance != null && HUDCanvas.instance.rect != null)
+        var hudRect = GetHudCanvasRect();
+        _onHudCanvas = hudRect != null;
+        if (hudRect != null)
         {
-            transform.SetParent(HUDCanvas.instance.transform, false);
-            return HUDCanvas.instance.rect;
+            if (_fallbackCanvasObj != null)
+            {
+                _fallbackCanvasObj.SetActive(false);
+            }
+
+            return hudRect;
         }
 
-        var fallbackCanvasObj = new GameObject("CaptionmanOverlayCanvas");
-        fallbackCanvasObj.transform.SetParent(transform, false);
+        if (_fallbackCanvasObj == null)
+        {
+            _fallbackCanvasObj = new GameObject("CaptionmanOverlayCanvas");
+            _fallbackCanvasObj.transform.SetParent(transform, false);
 
-        var canvas = fallbackCanvasObj.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 2000;
+            var canvas = _fallbackCanvasObj.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 2000;
 
-        fallbackCanvasObj.AddComponent<CanvasScaler>();
-        fallbackCanvasObj.AddComponent<GraphicRaycaster>();
+            _fallbackCanvasObj.AddComponent<CanvasScaler>();
+            _fallbackCanvasObj.AddComponent<GraphicRaycaster>();
+        }
 
-        return fallbackCanvasObj.GetComponent<RectTransform>();
+        _fallbackCanvasObj.SetActive(true);
+        return _fallbackCanvasObj.GetComponent<RectTransform>();
+    }
+
+    // For v0.5.0: HUDCanvas don't exist yet at plugin load then move over once it appears.
+    private void TryMoveToHudCanvas()
+    {
+        if (_onHudCanvas || _containerRect == null)
+        {
+            return;
+        }
+
+        var hudRect = GetHudCanvasRect();
+        if (hudRect == null)
+        {
+            return;
+        }
+
+        _containerRect.SetParent(hudRect, false);
+        _onHudCanvas = true;
+        if (_fallbackCanvasObj != null)
+        {
+            _fallbackCanvasObj.SetActive(false);
+        }
+
+        TrySetGameFont();
     }
 
     private void Initialize(RectTransform parentRect)
@@ -304,9 +349,10 @@ public class CaptionUI : MonoBehaviour
 
         try
         {
-            var haul = GameObject.Find("Tax Haul");
+            var haul = FindObjectOfType<HaulUI>();
             if (haul == null)
             {
+                Captionman.LogDebug("HaulUI not found! Using default font now");
                 return;
             }
 
@@ -314,6 +360,7 @@ public class CaptionUI : MonoBehaviour
             if (haulText != null && haulText.font != null)
             {
                 _captionText.font = haulText.font;
+                Captionman.LogDebug($"Applied game font: {haulText.font.name}");
             }
         }
         catch (Exception ex)
