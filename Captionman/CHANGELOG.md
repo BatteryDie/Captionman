@@ -1,3 +1,29 @@
+## 1.0.4
+- Fix caption UI for R.E.P.O. v0.5.0 the Sunstone update by resolving the HUD canva and game font after scene loads
+- Update captionsEN.csv
+  - Add (Enemy) Pony's captions
+  - Fix `enemy animal attack loop` entity tags: use `EnemyAnimalAnim` for animal attacks. 
+    - Note: Pony do use same audio clip when it was crawling on the ceiling.
+  - Add (Enemy) Halloween version of Upscream's captions
+  - Add (Enemy) Halloween version of Gnome's captions
+  - Add (Valuable) Shooting Cowboy's captions
+  - Add (Valuable) Banjo's captions
+  - Add (Valuable) Mouth Harp's captions
+  - Add (Valuable) Harmonica's captions
+  - Add (Valuable) Bird Cage's captions
+  - Add (Valuable) Cowboy Action Figure's captions
+  - Add (Valuable) Golf Cart's captions
+  - Add (Valuable) Rattlesnake's captions
+  - Add (Valuable) Snake in a Can's captions
+  - Add (Valuable) Explosive Tower's captions
+    - Note: Explosive Tower dynamite is using igniting sound file from Banger. Use `ValuableDesertExplosiveTowerDynamite` for Explosive Tower dynamite and `EnemyBangAnim` for Banger.
+  - Add (Valuable) `Glass Big`'s captions
+  - Add (Item) Revolver's captions
+  - Add (Prop) Minecart's captions
+  - Add (Level) Halloween version of extraction's captions
+  - Add (Level) Arctic Door's captions
+  - Add Additional captions (rock slide, shack floor breaking, and desert glass breaking)
+
 ## 1.0.3
 - Reduce default Background Opacity value from `0.7` to `0.4`
 - Update both `README.md` files with new configuration information
